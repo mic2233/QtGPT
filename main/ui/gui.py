@@ -6,8 +6,9 @@ class BlackWindow(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("QtGPT")
-        self.resize(800, 600)
+        self.resize(1080, 800)
         self.setStyleSheet("background-color: #1f1e1e;")
+        self.user_question=""
 
         #main layout
         main_layout = QVBoxLayout(self)
@@ -18,7 +19,7 @@ class BlackWindow(QWidget):
         main_layout.addSpacing(30)
 
         # label in top layout
-        top_label = QLabel("Ask me something", self)
+        top_label = QLabel("QtGPT Open-Source ChatBot", self)
         top_label.setAlignment(Qt.AlignCenter)
         top_label.setStyleSheet("color: #ffffff; font-size: 18px;")
         main_layout.addWidget(top_label)
@@ -29,7 +30,9 @@ class BlackWindow(QWidget):
         #Middle container
         self.prompt_textarea = QWidget(self)
         self.prompt_textarea.setObjectName("container")
-        self.prompt_textarea.setMinimumSize(400, 100)
+        self.prompt_textarea.setMaximumSize(800, 175)
+        self.prompt_textarea.setMinimumSize(500, 175)
+
         self.prompt_textarea.setStyleSheet("""
             QWidget#container {
                 background-color: #3d3c3c;
@@ -100,30 +103,72 @@ class BlackWindow(QWidget):
         
         container_layout.addLayout(btn_row)
         
+        main_layout.addSpacing(20)
+
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)      # no frame border
-        scroll.setStyleSheet("background: green;")  # transparent background
-
-        container = QWidget()
-        container.setStyleSheet("background: white;")  # keep it see-through
-        vbox = QVBoxLayout(container)
-        vbox.setContentsMargins(0, 0, 0, 0)
-        vbox.setSpacing(8)
-
+        scroll.setStyleSheet("background: transparent;")  # transparent background
+        scroll.setSizePolicy(
+            QSizePolicy.Expanding,    # horizontal
+            QSizePolicy.Expanding     # vertical
+        )
         
-
+        container = QWidget()
+        container.setStyleSheet("background: transparent;")  # keep it see-through
+        vbox = QVBoxLayout(container)
+        vbox.setContentsMargins(5, 5, 5, 5)
+        vbox.setSpacing(0)
+        vbox.addStretch()
+        scroll.setWidget(container)
+        main_layout.addWidget(scroll,3)
         # Bottom stretch to push everything upwards
         main_layout.addStretch()
+    
 
-        
-        
+        self.button.clicked.connect(lambda: self.user_message(container,vbox,self.user_question))
+        vbox.addStretch()
+
         
     def on_send_clicked(self):
         text = self.input_line.toPlainText()
-        print(text)    
+        self.user_question=text
+        
+    def user_message(self,container,vbox,user_question):
+        chat_container = QWidget(container)
+        chat_container.setStyleSheet("""
+            border-radius: 8px;
+            padding: 6px;
+        """)
+        chat_layout = QHBoxLayout(chat_container)
+        chat_layout.setContentsMargins(0, 0, 0, 0)
+        
+
+        # Put the user's text on the right
+        user_text = QLabel(user_question, chat_container)
+        user_text.setStyleSheet("color: black; font-size: 16px; background-color: #3d3c3c;")
+        chat_layout.addStretch()             # push label to the right
+        chat_layout.addWidget(user_text)
+        
+        second_bubble = QWidget(container)
+        second_bubble.setStyleSheet("""
+            border-radius: 8px;
+            padding: 6px;
+        """)
+        
+        second_layout = QHBoxLayout(second_bubble)
+        second_layout.addStretch()
+        lbl2 = QLabel("How are you?", second_bubble)
+        lbl2.setStyleSheet("color: white;")
+        second_layout.addWidget(lbl2)
+                
+        vbox.addWidget(chat_container, alignment=Qt.AlignTop)
+        vbox.addWidget(second_bubble,alignment=Qt.AlignLeft)
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     win = BlackWindow()
     win.show()
     sys.exit(app.exec())
+
+
