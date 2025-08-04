@@ -1,4 +1,7 @@
 import sys
+
+# import chatgpt
+
 from PySide6.QtWidgets import QFrame,QApplication, QWidget, QVBoxLayout, QLabel, QPlainTextEdit, QSizePolicy, QPushButton, QHBoxLayout, QScrollArea
 from PySide6.QtCore import Qt
 
@@ -12,7 +15,7 @@ class BlackWindow(QWidget):
 
         #main layout
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setContentsMargins(5, 5, 7, 15)
         main_layout.setSpacing(0)
 
         # Top spacer
@@ -108,7 +111,29 @@ class BlackWindow(QWidget):
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.NoFrame)      # no frame border
-        scroll.setStyleSheet("background: transparent;")  # transparent background
+        scroll.setStyleSheet("""
+    QScrollBar:vertical {
+        background: #030303;
+        width: 12px;
+        margin: 0px 0px 0px 0px;
+        border-radius: 6px;
+    }
+    QScrollBar::handle:vertical {
+        background: #808080;
+        min-height: 20px;
+        border-radius: 6px;
+    }
+    QScrollBar::handle:vertical:hover {
+        background: #a0a0a0;
+    }
+    QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+        height: 0px;
+        subcontrol-origin: margin;
+    }
+    QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+        background: none;
+    }
+        """)        
         scroll.setSizePolicy(
             QSizePolicy.Expanding,    # horizontal
             QSizePolicy.Expanding     # vertical
@@ -117,9 +142,8 @@ class BlackWindow(QWidget):
         container = QWidget()
         container.setStyleSheet("background: transparent;")  # keep it see-through
         vbox = QVBoxLayout(container)
-        vbox.setContentsMargins(5, 5, 5, 5)
+        vbox.setContentsMargins(125, 125,100, 125)
         vbox.setSpacing(0)
-        vbox.addStretch()
         scroll.setWidget(container)
         main_layout.addWidget(scroll,3)
         # Bottom stretch to push everything upwards
@@ -133,6 +157,7 @@ class BlackWindow(QWidget):
     def on_send_clicked(self):
         text = self.input_line.toPlainText()
         self.user_question=text
+        # chatgpt.ask_gpt2(self.user_question)
         
     def user_message(self,container,vbox,user_question):
         chat_container = QWidget(container)
@@ -157,13 +182,15 @@ class BlackWindow(QWidget):
         """)
         
         second_layout = QHBoxLayout(second_bubble)
+
         second_layout.addStretch()
         lbl2 = QLabel("How are you?", second_bubble)
-        lbl2.setStyleSheet("color: white;")
+        lbl2.setStyleSheet("color: black; font-size: 16px; background-color: #3d3c3c;")
+
         second_layout.addWidget(lbl2)
                 
-        vbox.addWidget(chat_container, alignment=Qt.AlignTop)
-        vbox.addWidget(second_bubble,alignment=Qt.AlignLeft)
+        vbox.insertWidget(vbox.count() - 1, chat_container)
+        vbox.insertWidget(vbox.count() - 1, second_bubble,alignment=Qt.AlignLeft)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
