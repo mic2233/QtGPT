@@ -1,6 +1,6 @@
 import sys
 
-# import chatgpt
+import chatgpt
 
 from PySide6.QtWidgets import QFrame,QApplication, QWidget, QVBoxLayout, QLabel, QPlainTextEdit, QSizePolicy, QPushButton, QHBoxLayout, QScrollArea
 from PySide6.QtCore import Qt
@@ -12,6 +12,7 @@ class BlackWindow(QWidget):
         self.resize(1080, 800)
         self.setStyleSheet("background-color: #1f1e1e;")
         self.user_question=""
+        self.chat_answer=""
 
         #main layout
         main_layout = QVBoxLayout(self)
@@ -134,32 +135,31 @@ class BlackWindow(QWidget):
         background: none;
     }
         """)        
-        scroll.setSizePolicy(
-            QSizePolicy.Expanding,    # horizontal
-            QSizePolicy.Expanding     # vertical
-        )
+        scroll.setWidgetResizable(True)  # fit content to width
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)  # or Qt.ScrollBarAlwaysOn
         
         container = QWidget()
         container.setStyleSheet("background: transparent;")  # keep it see-through
         vbox = QVBoxLayout(container)
         vbox.setContentsMargins(125, 125,100, 125)
-        vbox.setSpacing(0)
+        vbox.setSpacing(40)
         scroll.setWidget(container)
         main_layout.addWidget(scroll,3)
         # Bottom stretch to push everything upwards
         main_layout.addStretch()
     
 
-        self.button.clicked.connect(lambda: self.user_message(container,vbox,self.user_question))
+        self.button.clicked.connect(lambda: self.user_message(container,vbox,self.user_question,self.chat_answer))
         vbox.addStretch()
 
         
     def on_send_clicked(self):
         text = self.input_line.toPlainText()
         self.user_question=text
-        # chatgpt.ask_gpt2(self.user_question)
+        self.chat_answer=chatgpt.ask_gpt2(self.user_question)
         
-    def user_message(self,container,vbox,user_question):
+    def user_message(self,container,vbox,user_question,chat_answer):
         chat_container = QWidget(container)
         chat_container.setStyleSheet("""
             border-radius: 8px;
@@ -171,24 +171,30 @@ class BlackWindow(QWidget):
 
         # Put the user's text on the right
         user_text = QLabel(user_question, chat_container)
-        user_text.setStyleSheet("color: black; font-size: 16px; background-color: #3d3c3c;")
+        user_text.setStyleSheet("color: white; font-size: 20px; background-color: #3d3c3c;")
         chat_layout.addStretch()             # push label to the right
         chat_layout.addWidget(user_text)
         
         second_bubble = QWidget(container)
         second_bubble.setStyleSheet("""
+            
             border-radius: 8px;
             padding: 6px;
         """)
         
+
         second_layout = QHBoxLayout(second_bubble)
 
         second_layout.addStretch()
-        lbl2 = QLabel("How are you?", second_bubble)
-        lbl2.setStyleSheet("color: black; font-size: 16px; background-color: #3d3c3c;")
+        lbl2 = QLabel(chat_answer, second_bubble)
+        lbl2.setStyleSheet("color: white; font-size: 20px; background-color: #3d3c3c;")
 
         second_layout.addWidget(lbl2)
-                
+        
+        user_text.setWordWrap(True)
+        lbl2.setWordWrap(True)  
+        user_text.setMaximumWidth(int(container.width() * 0.7) )
+        lbl2.setMaximumWidth(int(container.width() * 0.7) )
         vbox.insertWidget(vbox.count() - 1, chat_container)
         vbox.insertWidget(vbox.count() - 1, second_bubble,alignment=Qt.AlignLeft)
 
