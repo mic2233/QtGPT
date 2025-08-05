@@ -1,9 +1,10 @@
 import sys
 
-import chatgpt
+#import chatgpt
+from chat_server_connector import AskWorker
 
 from PySide6.QtWidgets import QFrame,QApplication, QWidget, QVBoxLayout, QLabel, QPlainTextEdit, QSizePolicy, QPushButton, QHBoxLayout, QScrollArea
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Slot, QThread
 
 class BlackWindow(QWidget):
     def __init__(self) -> None:
@@ -13,6 +14,8 @@ class BlackWindow(QWidget):
         self.setStyleSheet("background-color: #1f1e1e;")
         self.user_question=""
         self.chat_answer=""
+        self._threads: list[QThread] = []   # <- keep live threads
+
 
         #main layout
         main_layout = QVBoxLayout(self)
@@ -150,14 +153,55 @@ class BlackWindow(QWidget):
         main_layout.addStretch()
     
 
-        self.button.clicked.connect(lambda: self.user_message(container,vbox,self.user_question,self.chat_answer))
+        #self.button.clicked.connect(lambda: self.user_message(container,vbox,self.user_question,self.chat_answer))
         vbox.addStretch()
-
+        self.container = container        # ① FIX – keep for later
+        self.vbox       = vbox            # ② FIX
         
     def on_send_clicked(self):
-        text = self.input_line.toPlainText()
-        self.user_question=text
-        self.chat_answer=chatgpt.ask_gpt2(self.user_question)
+        question = self.input_line.toPlainText().strip()
+        if not question:
+            return
+
+        self.user_question = question      # keep prompt
+        self.add_user_message(question)
+        self.input_line.clear()
+
+        thread  = QThread(self)
+        worker  = AskWorker(question)
+        worker.moveToThread(thread)
+
+        thread.started.connect(worker.run)
+        worker.finished.connect(self.on_answer_ready)
+        worker.finished.connect(thread.quit)
+
+        # keep both objects alive
+        self._threads.append((thread, worker))   # ③ FIX
+
+        # safe deletion after finish
+        thread.finished.connect(thread.deleteLater)
+        worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(
+            lambda: self._threads.remove((thread, worker))
+        )
+
+        thread.start()
+
+    #────────────────────────────────────────────
+    @Slot(str)
+    def on_answer_ready(self, answer: str):
+        self.add_bot_message(answer)                  # quick console print
+        self.user_message(                            # real GUI bubbles
+            self.container, self.vbox,
+            self.user_question, answer
+        )
+    def _handle_answer(self, answer, thread, worker):
+        self.add_bot_message(answer)
+        thread.quit()
+
+    # dummy helpers so example runs
+    def add_user_message(self, text): print("YOU:", text)
+    def add_bot_message (self, text): print("BOT:", text)
         
     def user_message(self,container,vbox,user_question,chat_answer):
         chat_container = QWidget(container)
