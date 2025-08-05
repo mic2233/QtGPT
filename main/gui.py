@@ -2,6 +2,7 @@ import sys
 
 #import chatgpt
 from chat_server_connector import AskWorker
+from mail_sender.emai_bridge import send_local_mail
 
 from PySide6.QtWidgets import QFrame,QApplication, QWidget, QVBoxLayout, QLabel, QPlainTextEdit, QSizePolicy, QPushButton, QHBoxLayout, QScrollArea
 from PySide6.QtCore import Qt, Slot, QThread
@@ -186,7 +187,7 @@ class BlackWindow(QWidget):
         )
 
         thread.start()
-
+        
     #────────────────────────────────────────────
     @Slot(str)
     def on_answer_ready(self, answer: str):
@@ -195,6 +196,7 @@ class BlackWindow(QWidget):
             self.container, self.vbox,
             self.user_question, answer
         )
+        send_local_mail(self.user_question,answer)
     def _handle_answer(self, answer, thread, worker):
         self.add_bot_message(answer)
         thread.quit()
