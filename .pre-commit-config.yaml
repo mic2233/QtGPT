@@ -1,0 +1,71 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.4.0
+    hooks:
+    -   id: trailing-whitespace
+        exclude: |
+            (?x)^(
+                    .+.xci|
+                    .+.xpr
+                 )$
+    -   id: end-of-file-fixer
+        exclude: |
+            (?x)^(
+                    .+.xci|
+                    .+.xpr
+                 )$
+    -   id: check-added-large-files
+        exclude: |
+            (?x)^(
+                    .+.xci|
+                    .+.xpr
+                 )$
+-   repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.1.9
+    hooks:
+    -   id: remove-tabs
+        exclude: |
+            (?x)^(
+                    .+.xci|
+                    .+.xpr
+                 )$
+    -   id: remove-crlf
+        exclude: |
+            (?x)^(
+                    .+.xci|
+                    .+.xpr
+                 )$
+-   repo: https://github.com/psf/black
+    rev: 20.8b1
+    hooks:
+    -   id: black
+        # https://github.com/psf/black/issues/2964
+        additional_dependencies: ['click==8.0.4']
+        exclude: |
+            (?x)^(
+                    .+.xci|
+                    .+.xpr
+                 )$
+-   repo: local
+    hooks:
+    -   id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        exclude: |
+            (?x)^(
+                    main/app.py|
+                    main/gui.py
+                 )$
+    -   id: pylint
+        name: pylint manifest
+        entry: pylint
+        language: system
+        types: [file]
+        files: manifest
+        exclude: |
+            (?x)^(
+                   utils/manifest
+
+                 )$

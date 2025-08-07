@@ -19,7 +19,7 @@ resource "kubernetes_deployment_v1" "chat_backend" {
       spec {
         container {
           name  = "api"
-          image = "ghcr.io/mic2233/chat-backend:latest"
+          image = "ghcr.io/mic2233/chat-backend:2.0.0"
           port {
             container_port = 8000
           }
