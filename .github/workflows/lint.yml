@@ -1,0 +1,32 @@
+name: Lint & format
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  style-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive          # mirrors your GitLab job-token trick
+
+      # ---- Python toolchain ----------------------------------------------
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'         # matches the project venv
+
+      - name: Install pylint (+ plugins)
+        run: |
+          python -m pip install --upgrade pip
+          # core pylint + whichever plugins your .pylintrc loads
+          pip install "pylint>=3.2" pylint-django pylint-runner
+
+      # ---- run the exact same hook set -----------------------------------
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files        # full repo sweep, like your GitLab `lint` job
